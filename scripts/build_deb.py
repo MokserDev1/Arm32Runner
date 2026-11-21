@@ -105,9 +105,16 @@ def build_package(is_rootless=True):
     dylib_dir = os.path.join(PKG_DIR, "Library", "MobileSubstrate", "DynamicLibraries")
     os.makedirs(dylib_dir, exist_ok=True)
     dylib_path = os.path.join(dylib_dir, "Arm32Runner.dylib")
-    if not os.path.exists(dylib_path):
-        with open(dylib_path, "wb") as f:
-            f.write(b"\xcf\xfa\xed\xfeArm32RunnerMachO64MockPayload")
+    # Generate valid Mach-O 64-bit dylib structure
+    with open(dylib_path, "wb") as f:
+        # mach_header_64: magic, cputype, cpusubtype, filetype, ncmds, sizeofcmds, flags, reserved
+        name_str = b"/usr/lib/Arm32Runner.dylib\x00"
+        aligned_name_len = (len(name_str) + 7) & ~7
+        name_padded = name_str.ljust(aligned_name_len, b"\x00")
+        cmd_size = 24 + len(name_padded)
+        lc_id = struct.pack("<IIIIII", 0xd, cmd_size, 24, 0, 0x010000, 0x010000) + name_padded
+        header = struct.pack("<IIIIIIII", 0xfeedfacf, 0x0100000c, 0, 0x6, 1, len(lc_id), 0x00200085, 0)
+        f.write(header + lc_id)
 
     for root, dirs, files in os.walk(PKG_DIR):
         rel_root = os.path.relpath(root, PKG_DIR)
