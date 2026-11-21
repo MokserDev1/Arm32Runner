@@ -50,6 +50,14 @@
             text-decoration: none;
             transition: 0.2s ease-in-out;
         }
+        .btn-trollstore {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: #ffffff;
+        }
+        .btn-trollstore:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
         .btn-sileo {
             background: linear-gradient(135deg, #2563eb, #38bdf8);
             color: #ffffff;
@@ -85,6 +93,7 @@
         <p>Run legacy 32-bit (ARMv7) IPAs seamlessly on 64-bit iOS devices with SpringBoard and MobileInstallation integration.</p>
         
         <div class="btn-group">
+            <a class="btn btn-trollstore" href="apple-magnifier://install?url=https://raw.githubusercontent.com/MokserDev1/Arm32Runner/main/dist/Arm32Runner.ipa">Install in TrollStore (Direct)</a>
             <a class="btn btn-sileo" id="sileoBtn" href="sileo://source/">Add to Sileo</a>
             <a class="btn btn-zebra" id="zebraBtn" href="zbra://sources/add/">Add to Zebra</a>
         </div>

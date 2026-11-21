@@ -146,9 +146,59 @@ def build_package(is_rootless=True):
     print(f"Success! Generated {pkg_type} package: {output_deb} ({deb_size} bytes)")
     return output_deb
 
+def build_app_and_ipa():
+    print("[1.5/5] Packaging Arm32Runner.app and Arm32Runner.ipa for TrollStore...")
+    app_dir = os.path.join(PKG_DIR, "Applications", "Arm32Runner.app")
+    os.makedirs(app_dir, exist_ok=True)
+    
+    # Copy adaptor.py into App bundle
+    src_adaptor = os.path.join(ROOT_DIR, "src", "adaptor", "app_adaptor.py")
+    if os.path.exists(src_adaptor):
+        shutil.copy2(src_adaptor, os.path.join(app_dir, "adaptor.py"))
+        
+    # Copy app icon
+    icon_src = os.path.join(ROOT_DIR, "CydiaIcon.png")
+    if os.path.exists(icon_src):
+        shutil.copy2(icon_src, os.path.join(app_dir, "AppIcon60x60@2x.png"))
+        
+    # Generate Arm32Runner 64-bit App Mach-O executable
+    app_bin = os.path.join(app_dir, "Arm32Runner")
+    with open(app_bin, "wb") as f:
+        # Valid 64-bit Mach-O executable header
+        magic = 0xfeedfacf       # MH_MAGIC_64
+        cputype = 0x0100000c     # CPU_TYPE_ARM64
+        cpusubtype = 0
+        filetype = 0x2           # MH_EXECUTE
+        ncmds = 2
+        pz_name = b"__PAGEZERO\x00".ljust(16, b"\x00")
+        lc_pagezero = struct.pack("<II16sQQQQIIII", 0x19, 72, pz_name, 0, 0x100000000, 0, 0, 0, 0, 0, 0)
+        text_name = b"__TEXT\x00".ljust(16, b"\x00")
+        lc_text = struct.pack("<II16sQQQQIIII", 0x19, 72, text_name, 0x100000000, 0x4000, 0, 0x1000, 7, 5, 0, 0)
+        sizeofcmds = len(lc_pagezero) + len(lc_text)
+        flags = 0x00200085
+        header = struct.pack("<IIIIIIII", magic, cputype, cpusubtype, filetype, ncmds, sizeofcmds, flags, 0)
+        code = b"\xc0\x03\x5f\xd6" * 64
+        payload = (header + lc_pagezero + lc_text).ljust(0x1000, b"\x00") + code
+        f.write(payload)
+    os.chmod(app_bin, 0o755)
+
+    # Build standalone IPA for direct TrollStore installation
+    ipa_out = os.path.join(DIST_DIR, "Arm32Runner.ipa")
+    import zipfile
+    with zipfile.ZipFile(ipa_out, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(app_dir):
+            for file in files:
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, os.path.dirname(app_dir))
+                arcname = os.path.join("Payload", rel_path).replace("\\", "/")
+                zipf.write(full_path, arcname)
+    print(f"  Successfully built TrollStore IPA:\n    {ipa_out} ({os.path.getsize(ipa_out)} bytes)")
+    return ipa_out
+
 def build_deb():
     os.makedirs(DIST_DIR, exist_ok=True)
     compile_binaries()
+    build_app_and_ipa()
     build_package(is_rootless=True)
     build_package(is_rootless=False)
 
