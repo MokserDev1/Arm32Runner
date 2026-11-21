@@ -1,0 +1,13 @@
+{
+  "class": "SileoFeatured",
+  "itemSize": "{280, 160}",
+  "itemCornerRadius": 12,
+  "banners": [
+    {
+      "url": "https://raw.githubusercontent.com/antigravity/arm32runner/main/banner.png",
+      "title": "Arm32Runner",
+      "package": "com.antigravity.arm32runner",
+      "hideShadow": false
+    }
+  ]
+}

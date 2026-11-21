@@ -101,10 +101,31 @@ SHA256:
 {chr(10).join(sha256_entries)}
 """
 
-    with open(os.path.join(REPO_DIR, "Release"), "w", encoding="utf-8") as f:
-        f.write(release_content)
+    # Write into both REPO_DIR and ROOT_DIR for seamless GitHub Pages root serving
+    for target_dir in [REPO_DIR, ROOT_DIR]:
+        debs_sub = os.path.join(target_dir, "debs")
+        os.makedirs(debs_sub, exist_ok=True)
+        dest_deb = os.path.join(debs_sub, "com.antigravity.arm32runner_1.0.0_iphoneos-arm64.deb")
+        if os.path.abspath(DIST_DEB) != os.path.abspath(dest_deb):
+            shutil.copy2(DIST_DEB, dest_deb)
+        
+        with open(os.path.join(target_dir, "Packages"), "wb") as f:
+            f.write(packages_content)
+        with gzip.open(os.path.join(target_dir, "Packages.gz"), "wb") as f:
+            f.write(packages_content)
+        with bz2.open(os.path.join(target_dir, "Packages.bz2"), "wb") as f:
+            f.write(packages_content)
+        with lzma.open(os.path.join(target_dir, "Packages.xz"), "wb") as f:
+            f.write(packages_content)
+        with open(os.path.join(target_dir, "Release"), "w", encoding="utf-8") as f:
+            f.write(release_content)
+        
+        # Copy index.html and sileo-featured.json
+        if target_dir != REPO_DIR:
+            shutil.copy2(os.path.join(REPO_DIR, "index.html"), os.path.join(target_dir, "index.html"))
+            shutil.copy2(os.path.join(REPO_DIR, "sileo-featured.json"), os.path.join(target_dir, "sileo-featured.json"))
 
-    print(f"APT repository successfully generated in:\n  {REPO_DIR}")
+    print(f"APT repository successfully generated in:\n  {REPO_DIR}\n  and root {ROOT_DIR}")
 
 if __name__ == "__main__":
     generate_repo()

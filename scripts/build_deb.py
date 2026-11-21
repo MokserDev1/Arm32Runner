@@ -83,13 +83,13 @@ def create_ar_archive(ar_entries, output_path):
             if len(data) % 2 != 0:
                 f.write(b"\n")
 
-def build_deb():
-    os.makedirs(DIST_DIR, exist_ok=True)
-    compile_binaries()
+def build_package(is_rootless=True):
+    suffix = "" if is_rootless else "_rootful"
+    output_deb = os.path.join(DIST_DIR, f"com.antigravity.arm32runner_1.0.0{suffix}_iphoneos-arm64.deb")
+    pkg_type = "ROOTLESS (/var/jb/)" if is_rootless else "ROOTFUL (/)"
+    print(f"\nBuilding {pkg_type} package: {output_deb}")
 
-    print("[2/5] Preparing control.tar.gz...")
     control_entries = {}
-    
     debian_dir = os.path.join(PKG_DIR, "DEBIAN")
     for fname in ["control", "postinst", "prerm"]:
         fpath = os.path.join(debian_dir, fname)
@@ -101,15 +101,11 @@ def build_deb():
 
     control_tar_gz = create_tar_gz(control_entries)
 
-    print("[3/5] Preparing data.tar.gz...")
     data_entries = {}
-    
-    # Add dummy mock/compiled substrate dylib if needed or real dylib
     dylib_dir = os.path.join(PKG_DIR, "Library", "MobileSubstrate", "DynamicLibraries")
     os.makedirs(dylib_dir, exist_ok=True)
     dylib_path = os.path.join(dylib_dir, "Arm32Runner.dylib")
     if not os.path.exists(dylib_path):
-        # Create a lightweight dylib wrapper
         with open(dylib_path, "wb") as f:
             f.write(b"\xcf\xfa\xed\xfeArm32RunnerMachO64MockPayload")
 
@@ -119,7 +115,11 @@ def build_deb():
             continue
         for file in files:
             full_path = os.path.join(root, file)
-            arcname = "./" + os.path.join(rel_root, file).replace("\\", "/")
+            clean_rel = os.path.join(rel_root, file).replace("\\", "/")
+            if is_rootless:
+                arcname = "./var/jb/" + clean_rel
+            else:
+                arcname = "./" + clean_rel
             mode = 0o755 if ("bin" in arcname or file.endswith(".dylib")) else 0o644
             with open(full_path, "rb") as f:
                 content = f.read()
@@ -127,7 +127,6 @@ def build_deb():
 
     data_tar_gz = create_tar_gz(data_entries)
 
-    print("[4/5] Packaging ar container (debian-binary + control + data)...")
     debian_binary = b"2.0\n"
     ar_entries = [
         ("debian-binary", debian_binary, 0o644),
@@ -135,9 +134,16 @@ def build_deb():
         ("data.tar.gz", data_tar_gz, 0o644)
     ]
     
-    create_ar_archive(ar_entries, OUTPUT_DEB)
-    deb_size = os.path.getsize(OUTPUT_DEB)
-    print(f"[5/5] Success! Generated Sileo-compatible .deb package:\n  {OUTPUT_DEB} ({deb_size} bytes)")
+    create_ar_archive(ar_entries, output_deb)
+    deb_size = os.path.getsize(output_deb)
+    print(f"Success! Generated {pkg_type} package: {output_deb} ({deb_size} bytes)")
+    return output_deb
+
+def build_deb():
+    os.makedirs(DIST_DIR, exist_ok=True)
+    compile_binaries()
+    build_package(is_rootless=True)
+    build_package(is_rootless=False)
 
 if __name__ == "__main__":
     build_deb()
