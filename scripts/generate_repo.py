@@ -125,7 +125,37 @@ SHA256:
             shutil.copy2(os.path.join(REPO_DIR, "index.html"), os.path.join(target_dir, "index.html"))
             shutil.copy2(os.path.join(REPO_DIR, "sileo-featured.json"), os.path.join(target_dir, "sileo-featured.json"))
 
-    print(f"APT repository successfully generated in:\n  {REPO_DIR}\n  and root {ROOT_DIR}")
+    # Generate standard Debian dists structure (for Sileo/APT standard repository queries)
+    for suite in ["ios", "stable"]:
+        suite_dir = os.path.join(ROOT_DIR, "dists", suite)
+        bin_dir = os.path.join(suite_dir, "main", "binary-iphoneos-arm64")
+        os.makedirs(bin_dir, exist_ok=True)
+        
+        # Write Packages in dists
+        with open(os.path.join(bin_dir, "Packages"), "wb") as f:
+            f.write(packages_content)
+        with gzip.open(os.path.join(bin_dir, "Packages.gz"), "wb") as f:
+            f.write(packages_content)
+        with bz2.open(os.path.join(bin_dir, "Packages.bz2"), "wb") as f:
+            f.write(packages_content)
+        with lzma.open(os.path.join(bin_dir, "Packages.xz"), "wb") as f:
+            f.write(packages_content)
+            
+        # Write Release for suite
+        with open(os.path.join(suite_dir, "Release"), "w", encoding="utf-8") as f:
+            f.write(release_content)
+        with open(os.path.join(suite_dir, "InRelease"), "w", encoding="utf-8") as f:
+            f.write(release_content)
+
+    # Create .nojekyll in ROOT_DIR to prevent GitHub Pages from blocking any files
+    with open(os.path.join(ROOT_DIR, ".nojekyll"), "w") as f:
+        f.write("")
+
+    # Also write InRelease at root
+    with open(os.path.join(ROOT_DIR, "InRelease"), "w", encoding="utf-8") as f:
+        f.write(release_content)
+
+    print(f"Complete dual-format (Flat + dists) APT repository generated with .nojekyll successfully!")
 
 if __name__ == "__main__":
     generate_repo()
