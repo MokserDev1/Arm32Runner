@@ -1,0 +1,18 @@
+Package: com.antigravity.arm32runner
+Name: Arm32Runner
+Depends: mobilesubstrate (>= 0.9.5000)
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Run legacy 32-bit (ARMv7) IPAs seamlessly on 64-bit iOS devices with SpringBoard and installd integration.
+Maintainer: Antigravity Team
+Author: Antigravity Team
+Section: Tweaks
+Priority: optional
+Homepage: https://github.com/antigravity/arm32runner
+Tag: role::hacker, compatible::ios12, compatible::ios13, compatible::ios14, compatible::ios15, compatible::ios16
+Filename: ./debs/com.antigravity.arm32runner_1.0.0_iphoneos-arm64.deb
+Size: 20428
+MD5sum: 31088dfdaccc0f885c1a7146904fbf99
+SHA1: 3de389ee031f74f800f4fe7374d2a1289aa9b6d2
+SHA256: d999b47ae830154fe481adf7ddfb500affb4b4f3986804e6ffd770723f2f73ab
+

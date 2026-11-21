@@ -1,0 +1,11 @@
+#!/bin/sh
+# prerm script for Arm32Runner
+set -e
+
+echo "[Arm32Runner] Cleaning up before removal..."
+
+if which killall >/dev/null 2>&1; then
+    killall -9 installd || true
+fi
+
+exit 0

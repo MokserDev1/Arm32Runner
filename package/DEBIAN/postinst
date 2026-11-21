@@ -1,0 +1,31 @@
+#!/bin/sh
+# postinst script for Arm32Runner
+set -e
+
+echo "[Arm32Runner] Setting up permissions and restarting daemons..."
+
+# Set binary permissions
+if [ -f "/usr/bin/arm32-check" ]; then
+    chmod 755 /usr/bin/arm32-check
+    chown root:wheel /usr/bin/arm32-check
+fi
+
+# Rootless path support
+if [ -f "/var/jb/usr/bin/arm32-check" ]; then
+    chmod 755 /var/jb/usr/bin/arm32-check
+fi
+
+# Clear MobileInstallation and icon caches if uicache is present
+if which uicache >/dev/null 2>&1; then
+    uicache --all || true
+fi
+
+# Respring SpringBoard if sbreload is available
+if which sbreload >/dev/null 2>&1; then
+    sbreload || true
+elif which killall >/dev/null 2>&1; then
+    killall -9 SpringBoard installd || true
+fi
+
+echo "[Arm32Runner] Installation completed successfully!"
+exit 0
