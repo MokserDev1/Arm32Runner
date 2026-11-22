@@ -108,40 +108,12 @@ def adapt_app_bundle(app_dir):
 
     return True
 
+import os
+import sys
+from .standalone_injector import convert_to_standalone
+
 def adapt_ipa(input_ipa, output_ipa=None):
-    if not output_ipa:
-        base, ext = os.path.splitext(input_ipa)
-        output_ipa = f"{base}_adapted_arm64{ext}"
-
-    print(f"Adapting 32-bit IPA: {input_ipa} -> {output_ipa}")
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with zipfile.ZipFile(input_ipa, "r") as zip_in:
-            zip_in.extractall(tmp_dir)
-
-        payload_dir = os.path.join(tmp_dir, "Payload")
-        if not os.path.exists(payload_dir):
-            print("Error: IPA does not contain a Payload folder")
-            return False
-
-        app_dirs = [d for d in os.listdir(payload_dir) if d.endswith(".app")]
-        if not app_dirs:
-            print("Error: No .app found inside Payload")
-            return False
-
-        target_app = os.path.join(payload_dir, app_dirs[0])
-        if not adapt_app_bundle(target_app):
-            return False
-
-        # Re-pack adapted IPA
-        with zipfile.ZipFile(output_ipa, "w", zipfile.ZIP_DEFLATED) as zip_out:
-            for root, _, files in os.walk(tmp_dir):
-                for file in files:
-                    full = os.path.join(root, file)
-                    rel = os.path.relpath(full, tmp_dir)
-                    zip_out.write(full, rel)
-
-    print(f"Successfully generated adapted 64-bit IPA:\n  {output_ipa}")
-    return True
+    return convert_to_standalone(input_ipa, output_ipa)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
