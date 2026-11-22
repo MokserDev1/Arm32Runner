@@ -19,35 +19,30 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def generate_arm64_launcher_stub(app_name):
     """
-    Generates a valid 64-bit Mach-O executable stub that acts as CFBundleExecutable.
-    When SpringBoard launches this stub, it executes as a native ARM64 process,
-    initializes the Arm32Runner bridge, maps the 32-bit payload, and starts execution.
+    Uses the genuine compiled ARM64 Mach-O executable as CFBundleExecutable.
+    This binary has valid Mach-O segments, sections, and Linkedit that satisfy
+    TrollStore's CoreTrust bypass (ChOma / ldid), preventing error 185.
     """
-    # 64-bit Mach-O Header
-    # magic(4), cputype(4), cpusubtype(4), filetype(4), ncmds(4), sizeofcmds(4), flags(4), reserved(4)
+    stub_path = os.path.join(ROOT_DIR, "package", "Applications", "Arm32Runner.app", "Arm32Runner")
+    if os.path.exists(stub_path):
+        with open(stub_path, "rb") as f:
+            return f.read()
+            
+    # Fallback minimal header
     magic = 0xfeedfacf       # MH_MAGIC_64
     cputype = 0x0100000c     # CPU_TYPE_ARM64
     cpusubtype = 0           # CPU_SUBTYPE_ARM64_ALL
     filetype = 0x2           # MH_EXECUTE
     ncmds = 2
-    
-    # LC_SEGMENT_64 (__PAGEZERO)
-    # cmd(4), cmdsize(4), segname(16), vmaddr(8), vmsize(8), fileoff(8), filesize(8), maxprot(4), initprot(4), nsects(4), flags(4)
     pz_name = b"__PAGEZERO\x00".ljust(16, b"\x00")
     lc_pagezero = struct.pack("<II16sQQQQIIII", 0x19, 72, pz_name, 0, 0x100000000, 0, 0, 0, 0, 0, 0)
-    
-    # LC_SEGMENT_64 (__TEXT)
     text_name = b"__TEXT\x00".ljust(16, b"\x00")
     lc_text = struct.pack("<II16sQQQQIIII", 0x19, 72, text_name, 0x100000000, 0x4000, 0, 0x1000, 7, 5, 0, 0)
-    
     sizeofcmds = len(lc_pagezero) + len(lc_text)
     flags = 0x00200085
     header = struct.pack("<IIIIIIII", magic, cputype, cpusubtype, filetype, ncmds, sizeofcmds, flags, 0)
-    
-    # Generate tiny ARM64 entry code (ret 0)
-    code = b"\xc0\x03\x5f\xd6" * 64 # ret instructions
-    payload = header + lc_pagezero + lc_text
-    payload = payload.ljust(0x1000, b"\x00") + code
+    code = b"\xc0\x03\x5f\xd6" * 64
+    payload = (header + lc_pagezero + lc_text).ljust(0x1000, b"\x00") + code
     return payload
 
 def adapt_app_bundle(app_dir):

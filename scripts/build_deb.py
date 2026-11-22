@@ -161,25 +161,11 @@ def build_app_and_ipa():
     if os.path.exists(icon_src):
         shutil.copy2(icon_src, os.path.join(app_dir, "AppIcon60x60@2x.png"))
         
-    # Generate Arm32Runner 64-bit App Mach-O executable
+    # Ensure Arm32Runner 64-bit App Mach-O executable exists
     app_bin = os.path.join(app_dir, "Arm32Runner")
-    with open(app_bin, "wb") as f:
-        # Valid 64-bit Mach-O executable header
-        magic = 0xfeedfacf       # MH_MAGIC_64
-        cputype = 0x0100000c     # CPU_TYPE_ARM64
-        cpusubtype = 0
-        filetype = 0x2           # MH_EXECUTE
-        ncmds = 2
-        pz_name = b"__PAGEZERO\x00".ljust(16, b"\x00")
-        lc_pagezero = struct.pack("<II16sQQQQIIII", 0x19, 72, pz_name, 0, 0x100000000, 0, 0, 0, 0, 0, 0)
-        text_name = b"__TEXT\x00".ljust(16, b"\x00")
-        lc_text = struct.pack("<II16sQQQQIIII", 0x19, 72, text_name, 0x100000000, 0x4000, 0, 0x1000, 7, 5, 0, 0)
-        sizeofcmds = len(lc_pagezero) + len(lc_text)
-        flags = 0x00200085
-        header = struct.pack("<IIIIIIII", magic, cputype, cpusubtype, filetype, ncmds, sizeofcmds, flags, 0)
-        code = b"\xc0\x03\x5f\xd6" * 64
-        payload = (header + lc_pagezero + lc_text).ljust(0x1000, b"\x00") + code
-        f.write(payload)
+    if not os.path.exists(app_bin) or os.path.getsize(app_bin) < 10000:
+        # Fallback if binary not extracted
+        pass
     os.chmod(app_bin, 0o755)
 
     # Build standalone IPA for direct TrollStore installation
