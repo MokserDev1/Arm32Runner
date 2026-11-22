@@ -11,8 +11,8 @@ Priority: optional
 Homepage: https://github.com/antigravity/arm32runner
 Tag: role::hacker, compatible::ios12, compatible::ios13, compatible::ios14, compatible::ios15, compatible::ios16
 Filename: ./debs/com.antigravity.arm32runner_1.0.0_iphoneos-arm64.deb
-Size: 28374
-MD5sum: e4476638c158e932cbb325286d423304
-SHA1: f028f979ea5d25cec022cc5ea5c7fe6c41f44841
-SHA256: 670bf13c8f50ea904fdd188785f2aff518361bda68a4558b4c3fe2d0fa113e37
+Size: 28028
+MD5sum: 142822cbf771d11de605f702ec04e8e6
+SHA1: 1b5b4356493567035cd804a0acf971329d303763
+SHA256: df6041211b200f2e00f66905855f65781e21eba44e959ae5f3da1923c99b0adb
 

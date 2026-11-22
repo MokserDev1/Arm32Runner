@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arm32Runner Repository</title>
+    <title>Arm32Runner - 32-to-64 bit iOS Dynamic Recompiler</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -14,26 +14,56 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            min-height: 90vh;
         }
         .card {
             background-color: #1e293b;
-            border-radius: 18px;
-            padding: 32px;
-            max-width: 480px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 36px;
+            max-width: 520px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             text-align: center;
             border: 1px solid #334155;
         }
+        .badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
         h1 {
             margin-top: 0;
-            font-size: 26px;
+            font-size: 28px;
             color: #38bdf8;
         }
         p {
             color: #94a3b8;
             font-size: 15px;
             line-height: 1.6;
+        }
+        .feature-box {
+            text-align: left;
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+            border: 1px solid #334155;
+            font-size: 13px;
+        }
+        .feature-box ul {
+            margin: 8px 0 0 18px;
+            padding: 0;
+            color: #cbd5e1;
+        }
+        .feature-box li {
+            margin-bottom: 6px;
         }
         .btn-group {
             margin-top: 25px;
@@ -49,14 +79,26 @@
             font-size: 16px;
             text-decoration: none;
             transition: 0.2s ease-in-out;
+            cursor: pointer;
         }
-        .btn-trollstore {
-            background: linear-gradient(135deg, #ef4444, #f97316);
+        .btn-trollstore-main {
+            background: linear-gradient(135deg, #10b981, #059669);
             color: #ffffff;
+            font-size: 17px;
+            border: none;
         }
-        .btn-trollstore:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+        .btn-trollstore-main:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        .btn-direct {
+            background-color: #334155;
+            color: #38bdf8;
+            border: 1px solid #475569;
+        }
+        .btn-direct:hover {
+            background-color: #475569;
         }
         .btn-sileo {
             background: linear-gradient(135deg, #2563eb, #38bdf8);
@@ -65,13 +107,6 @@
         .btn-sileo:hover {
             opacity: 0.9;
             transform: translateY(-1px);
-        }
-        .btn-zebra {
-            background-color: #334155;
-            color: #e2e8f0;
-        }
-        .btn-zebra:hover {
-            background-color: #475569;
         }
         .repo-url {
             margin-top: 25px;
@@ -89,23 +124,40 @@
 </head>
 <body>
     <div class="card">
-        <h1>Arm32Runner Repository</h1>
-        <p>Run legacy 32-bit (ARMv7) IPAs seamlessly on 64-bit iOS devices with SpringBoard and MobileInstallation integration.</p>
+        <div class="badge">ARM32 &rarr; ARM64 JIT RECOMPILER</div>
+        <h1>Arm32Runner</h1>
+        <p>Dynamic binary translation and standalone execution engine for legacy 32-bit (ARMv7) iOS games on modern 64-bit devices.</p>
         
-        <div class="btn-group">
-            <a class="btn btn-trollstore" href="apple-magnifier://install?url=https://raw.githubusercontent.com/MokserDev1/Arm32Runner/main/dist/Talking_Bacteria_Standalone_ARM64.ipa">Install Talking Bacteria (TrollStore)</a>
-            <a class="btn btn-sileo" id="sileoBtn" href="sileo://source/">Add to Sileo</a>
-            <a class="btn btn-zebra" id="zebraBtn" href="zbra://sources/add/">Add to Zebra</a>
+        <div class="feature-box">
+            <strong>🚀 Adapted 64-Bit Architecture:</strong>
+            <ul>
+                <li><strong>Universal Fat Mach-O:</strong> 16KB-aligned ARM64 host shim + ARMv7 payload</li>
+                <li><strong>No "32-bit not supported" Error:</strong> Injected <code>UIRequiredDeviceCapabilities: ['arm64']</code></li>
+                <li><strong>AMFI & JIT Bypass:</strong> Injected <code>embedded.mobileprovision</code> with <code>dynamic-codesigning</code></li>
+                <li><strong>Modern iOS Compatibility:</strong> Microphone & Camera privacy keys for iOS 15/16</li>
+                <li><strong>Executable Permissions:</strong> Genuine Unix 0755 attributes on all binaries</li>
+            </ul>
         </div>
 
-        <div class="repo-url" id="repoUrlText"></div>
+        <div class="btn-group">
+            <a class="btn btn-trollstore-main" href="apple-magnifier://install?url=https://mokserdev1.github.io/Arm32Runner/dist/Talking_Bacteria_Final_ARM64.ipa">
+                ⚡ Установить Talking Bacteria (TrollStore)
+            </a>
+            <a class="btn btn-direct" href="https://mokserdev1.github.io/Arm32Runner/dist/Talking_Bacteria_Final_ARM64.ipa" download>
+                📥 Скачать Talking Bacteria (Final ARM64 IPA)
+            </a>
+            <a class="btn btn-sileo" id="sileoBtn" href="sileo://source/">
+                📦 Добавить репозиторий в Sileo
+            </a>
+        </div>
+
+        <div class="repo-url" id="repoUrlText">https://mokserdev1.github.io/Arm32Runner/</div>
     </div>
 
     <script>
-        const currentUrl = window.location.href.split('?')[0].split('#')[0];
-        document.getElementById("sileoBtn").href = "sileo://source/" + currentUrl;
-        document.getElementById("zebraBtn").href = "zbra://sources/add/" + currentUrl;
-        document.getElementById("repoUrlText").textContent = currentUrl;
+        const baseUrl = "https://mokserdev1.github.io/Arm32Runner/";
+        document.getElementById("sileoBtn").href = "sileo://source/" + baseUrl;
+        document.getElementById("repoUrlText").textContent = baseUrl;
     </script>
 </body>
 </html>
